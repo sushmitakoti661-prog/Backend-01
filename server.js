@@ -1,7 +1,10 @@
 const express = require('express');
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const openapiSpec = require('./openapi.json');
 
 app.use(express.json()); // helps to read JSON from request bodies
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 //our "database"
 let tasks = [
