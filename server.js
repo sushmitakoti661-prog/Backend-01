@@ -68,13 +68,21 @@ app.post('/tasks', (req, res) => {
     if(!title || title.trim() === ''){
         return res.status(400).json({error:"Title is required"});
     }
-    const newTask = {
-        id: tasks.length>0 ? Math.max(...tasks.map(t => t.id)) +1:1,
-        title:title,
-        done:false
-    };
-    tasks.push(newTask);
+    // Insert into database
+    const result = db.prepare(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)"
+    ).run(title, 0);
+
+    // Fetch the newly created task
+    const newTask = db.prepare(
+        "SELECT * FROM tasks WHERE id = ?"
+    ).get(result.lastInsertRowid);
+
+    // Convert 0/1 to boolean
+    newTask.done = Boolean(newTask.done);
+
     res.status(201).json(newTask);
+
 });
 
 //UPDATE a task
