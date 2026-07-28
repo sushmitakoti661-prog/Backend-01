@@ -7,12 +7,6 @@ const db = require("./db");
 app.use(express.json()); // helps to read JSON from request bodies
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
-//our "database"
-let tasks = [
-  {id:1, title:"Buy groceries", done:false},
-  {id:2, title:"Finish assignment", done:false},
-  {id:3, title:"Read a book", done:true}
-];
 
 app.get('/', (req, res) => {
   res.json({
@@ -85,35 +79,69 @@ app.post('/tasks', (req, res) => {
 
 });
 
-//UPDATE a task
-app.put('/tasks/:id',(req, res) =>{
-    const id= Number(req.params.id);
-    const task = tasks.find(t => t.id === id);
-    if(!task){
-        return res.status(404).json({error:`Task ${id} not found`});
+// UPDATE a task
+app.put('/tasks/:id', (req, res) => {
+
+    const id = Number(req.params.id);
+
+    // Check if task exists
+    const existingTask = db.prepare(
+        "SELECT * FROM tasks WHERE id = ?"
+    ).get(id);
+
+    if (!existingTask) {
+        return res.status(404).json({
+            error: `Task ${id} not found`
+        });
     }
-    const {title, done} = req.body;
-    if(title !== undefined && title.trim() === ''){
-        return res.status(400).json({error:"Title cannot be empty"});
+
+    const { title, done } = req.body;
+
+    if (title !== undefined && title.trim() === '') {
+        return res.status(400).json({
+            error: "Title cannot be empty"
+        });
     }
-    if(title !== undefined){
-        task.title = title;
-    }
-    if(done !== undefined){
-        task.done = done;
-    }
-    res.json(task);
+
+    // Keep existing values if not provided
+    const updatedTitle = title !== undefined ? title : existingTask.title;
+    const updatedDone = done !== undefined ? Number(done) : existingTask.done;
+
+    // Update database
+    db.prepare(`
+        UPDATE tasks
+        SET title = ?, done = ?
+        WHERE id = ?
+    `).run(updatedTitle, updatedDone, id);
+
+    // Fetch updated row
+    const updatedTask = db.prepare(
+        "SELECT * FROM tasks WHERE id = ?"
+    ).get(id);
+
+    updatedTask.done = Boolean(updatedTask.done);
+
+    res.json(updatedTask);
+
 });
 
-//DELETE a task
+// DELETE a task
 app.delete('/tasks/:id', (req, res) => {
+
     const id = Number(req.params.id);
-    const index = tasks.findIndex(t => t.id === id);
-    if(index === -1){
-        return res.status(404).json({error:`Task ${id} not found`});
+
+    const result = db.prepare(
+        "DELETE FROM tasks WHERE id = ?"
+    ).run(id);
+
+    if (result.changes === 0) {
+        return res.status(404).json({
+            error: `Task ${id} not found`
+        });
     }
-    tasks.splice(index, 1);
+
     res.status(204).send();
+
 });
 
 app.listen(3000);
