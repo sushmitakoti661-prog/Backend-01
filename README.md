@@ -1,18 +1,30 @@
 # Task API
 
-A simple CRUD API for managing a to-do list, built with Node.js and Express.
-Built as part of the FlyRank AI Backend Internship — Week 2, Assignment A1.
+# Task API
+
+A simple CRUD API for managing a to-do list, built with Node.js, Express, and SQLite.
+
+Built as part of the **FlyRank AI Backend Internship**.
+
+- Week 2 (Assignment A1): Built a CRUD API using in-memory storage.
+- Week 3 (Assignment A2): Migrated the storage layer to SQLite while keeping the same API endpoints.
 
 ## Features
+
 - Full CRUD (Create, Read, Update, Delete) for tasks
-- In-memory storage (no database yet)
+- SQLite database for persistent storage
+- Automatic database and table creation
+- Automatic seeding of sample tasks on first run
 - Input validation
-- Interactive API docs via Swagger UI
+- Interactive API documentation using Swagger UI
 
 ## Tech Stack
+
 - Node.js
-- Express
-- swagger-ui-express
+- Express.js
+- SQLite
+- better-sqlite3
+- Swagger UI (swagger-ui-express)
 
 ## How to Run
 
@@ -22,10 +34,22 @@ Built as part of the FlyRank AI Backend Internship — Week 2, Assignment A1.
 
 2. Install dependencies:
  - npm install
+
 3. Start the server:
  - node server.js
 
-4. Server runs at `http://localhost:3000`
+4. Open the API
+
+- API Base URL: `http://localhost:3000`
+- Swagger Documentation: `http://localhost:3000/docs`
+
+### Database
+
+The application automatically creates a SQLite database file named `tasks.db` when the server starts.
+
+If the database or the `tasks` table does not exist, they are created automatically.
+
+On the first run, the application inserts three sample tasks into the database. On later runs, the seed data is **not** inserted again.
 
 ## Endpoints
 
@@ -61,5 +85,32 @@ Interactive docs available at `http://localhost:3000/docs`
 
 ## Notes
 
-- Data is stored in memory only — it resets every time the server restarts. This will be fixed with a real database in Week 3.
-- Since this was built on Windows, `Invoke-RestMethod` / `Invoke-WebRequest` (PowerShell) was used instead of `curl` for POST/PUT requests, due to PowerShell's quoting behavior with JSON bodies.
+### Why SQLite?
+
+SQLite was chosen because it is lightweight, requires no separate database server, and stores all data in a single file (`tasks.db`). It is easy to set up and is a good choice for small applications and learning backend development.
+
+### Database File
+
+The database file (`tasks.db`) is created automatically when the application starts if it does not already exist.
+
+The file is ignored by Git (`.gitignore`) so every new clone of the repository creates its own fresh database automatically.
+
+### Example SQL Query
+
+The following SQL query was executed during Stage 4:
+
+```sql
+SELECT * FROM tasks;
+```
+
+This query returns all tasks stored in the database.
+
+### Windows Note
+
+Since this project was built on Windows, PowerShell's `Invoke-RestMethod` / `Invoke-WebRequest` was sometimes used instead of `curl` for POST and PUT requests because of PowerShell's JSON quoting behavior.
+
+## SQLite Database
+
+Below is the SQLite database opened in DB Browser after completing the migration from in-memory storage.
+
+![SQLite Database](db-browser-screenshot.png)
