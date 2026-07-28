@@ -28,18 +28,37 @@ app.get('/health', (req, res) => {
 
 //GET all tasks
 app.get('/tasks', (req, res) => {
-    res.json(tasks);
+    const tasks = db
+        .prepare("SELECT * FROM tasks")
+        .all();
+
+    const formattedTasks = tasks.map(task => ({
+        ...task,
+        done: Boolean(task.done)
+    }));
+
+    res.json(formattedTasks);
 });
 
 //GET one task by id
 app.get('/tasks/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const task = tasks.find(t =>t.id===id);
 
-    if(!task){
-        return res.status(404).json({error:`Task ${id} not found`});
+    const id = Number(req.params.id);
+
+    const task = db
+        .prepare("SELECT * FROM tasks WHERE id = ?")
+        .get(id);
+
+    if (!task) {
+        return res.status(404).json({
+            error: `Task ${id} not found`
+        });
     }
+
+    task.done = Boolean(task.done);
+
     res.json(task);
+
 });
 
 //CREATE a new task
